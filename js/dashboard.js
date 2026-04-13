@@ -426,13 +426,13 @@ function renderBarChart(monthlyData) {
         {
           label: 'Income',
           data: incomeData,
-          backgroundColor: '#10b981',
+          backgroundColor: '#c4b5fd',
           borderRadius: 4,
         },
         {
           label: 'Expenses',
           data: expenseData,
-          backgroundColor: '#ef4444',
+          backgroundColor: '#7c3aed',
           borderRadius: 4,
         },
         {

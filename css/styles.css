@@ -440,12 +440,8 @@ input, select, textarea {
 }
 
 .stat-card--savings {
-  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-  color: #fff;
+  background: #fff;
 }
-.stat-card--savings .stat-label { color: rgba(255,255,255,0.85); }
-.stat-card--savings .stat-value { color: #fff; }
-.stat-card--savings .stat-detail { color: rgba(255,255,255,0.8); }
 
 .stat-label {
   font-size: 0.75rem;
