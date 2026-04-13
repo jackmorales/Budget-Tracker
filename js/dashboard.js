@@ -222,31 +222,18 @@ export function renderDashboard(container, store) {
     </div>
   `;
 
-  // Hero card
-  const heroHTML = `
-    <div class="hero-card">
-      <div class="hero-label">Combined Savings</div>
-      <div class="hero-amount">${formatCurrencyFull(savings.combined)}</div>
-      <div class="hero-avatars">
-        <div class="hero-avatar">
-          <div class="hero-avatar-circle">J</div>
-          <div class="hero-avatar-amount">${formatCurrency(savings.jack)}</div>
-        </div>
-        <div class="hero-avatar">
-          <div class="hero-avatar-circle">C</div>
-          <div class="hero-avatar-amount">${formatCurrency(savings.courtney)}</div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Stats row
+  // Stats row (4 cards)
   const sharedCatDetail = stats.top3SharedCats.length > 0
     ? stats.top3SharedCats.join(' · ')
     : 'No shared expenses';
 
   const statsHTML = `
     <div class="stats-row">
+      <div class="stat-card stat-card--savings">
+        <div class="stat-label">Combined Savings</div>
+        <div class="stat-value">${formatCurrency(savings.combined)}</div>
+        <div class="stat-detail purple">J: ${formatCurrency(savings.jack)} · C: ${formatCurrency(savings.courtney)}</div>
+      </div>
       <div class="stat-card">
         <div class="stat-label">Income</div>
         <div class="stat-value">${formatCurrency(stats.income)}</div>
@@ -326,7 +313,6 @@ export function renderDashboard(container, store) {
       </div>
     </div>
     ${dateFilterHTML}
-    ${heroHTML}
     ${statsHTML}
     <div class="card monthly-chart-card">
       <div class="card-title">Monthly Savings & Spending</div>
