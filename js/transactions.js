@@ -400,6 +400,7 @@ function wireEvents(pageEl, rerenderFn) {
           if (name && name.trim()) {
             newCat = name.trim();
             ds.addCategory(newCat);
+            ds.saveConfig().catch(console.error);
           } else {
             const tx = ds.getTransactions()[index];
             el.value = tx.category || 'Uncategorised';
