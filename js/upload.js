@@ -15,13 +15,13 @@ export function renderUpload(container, store) {
         <div class="upload-icon">📊</div>
         <div class="upload-title">Master Workbook</div>
         <div class="upload-desc">Upload your existing .xlsx master file to load transactions, rules, and savings</div>
-        <input type="file" id="input-master" accept=".xlsx,.xls" style="display:none">
+        <input type="file" id="input-master" accept=".xlsx,.xls" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0">
       </div>
       <div class="upload-zone" id="zone-csv">
         <div class="upload-icon">📄</div>
         <div class="upload-title">ANZ CSV</div>
         <div class="upload-desc">Upload a new bank statement CSV to import transactions</div>
-        <input type="file" id="input-csv" accept=".csv" style="display:none">
+        <input type="file" id="input-csv" accept=".csv" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0">
       </div>
     </div>
     <div id="upload-result"></div>
