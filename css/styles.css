@@ -696,12 +696,18 @@ input, select, textarea {
 }
 
 .upload-zone input[type="file"] {
-  display: block;
   position: absolute;
   opacity: 0;
-  pointer-events: none;
   width: 0;
   height: 0;
+  overflow: hidden;
+}
+
+label.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
 }
 
 .upload-history {

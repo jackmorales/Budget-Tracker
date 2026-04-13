@@ -11,18 +11,18 @@ export function renderUpload(container, store) {
       <p class="subtitle">Import your financial data to get started</p>
     </div>
     <div class="upload-zones">
-      <div class="upload-zone" id="zone-master">
+      <label class="upload-zone" id="zone-master" for="input-master">
         <div class="upload-icon">📊</div>
         <div class="upload-title">Master Workbook</div>
         <div class="upload-desc">Upload your existing .xlsx master file to load transactions, rules, and savings</div>
-        <input type="file" id="input-master" accept=".xlsx,.xls" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0">
-      </div>
-      <div class="upload-zone" id="zone-csv">
+        <input type="file" id="input-master" accept=".xlsx,.xls">
+      </label>
+      <label class="upload-zone" id="zone-csv" for="input-csv">
         <div class="upload-icon">📄</div>
         <div class="upload-title">ANZ CSV</div>
         <div class="upload-desc">Upload a new bank statement CSV to import transactions</div>
-        <input type="file" id="input-csv" accept=".csv" style="position:absolute;opacity:0;pointer-events:none;width:0;height:0">
-      </div>
+        <input type="file" id="input-csv" accept=".csv">
+      </label>
     </div>
     <div id="upload-result"></div>
   `;
@@ -38,12 +38,7 @@ export function renderUpload(container, store) {
     resultEl.textContent = message;
   }
 
-  // --- Master Workbook zone ---
-  zoneMaster.addEventListener('click', (e) => {
-    if (e.target === inputMaster) return; // prevent loop
-    inputMaster.click();
-  });
-
+  // --- Master Workbook ---
   inputMaster.addEventListener('change', async () => {
     const file = inputMaster.files[0];
     if (!file) return;
@@ -81,12 +76,7 @@ export function renderUpload(container, store) {
     }
   });
 
-  // --- ANZ CSV zone ---
-  zoneCSV.addEventListener('click', (e) => {
-    if (e.target === inputCSV) return; // prevent loop
-    inputCSV.click();
-  });
-
+  // --- ANZ CSV ---
   inputCSV.addEventListener('change', async () => {
     const file = inputCSV.files[0];
     if (!file) return;
