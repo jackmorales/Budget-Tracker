@@ -3,6 +3,9 @@ import { renderTransactions } from './transactions.js';
 import { renderUpload } from './upload.js';
 import { renderExport } from './export.js';
 import { dataStore } from './datastore.js';
+import { showToast, updateSidebarSavings, formatCurrency, formatCurrencyFull } from './utils.js';
+
+export { showToast, updateSidebarSavings, formatCurrency, formatCurrencyFull } from './utils.js';
 
 // ============================================================
 // ROUTER
@@ -22,74 +25,22 @@ export function navigate() {
   // Hide all pages, show active
   Object.values(PAGES).forEach(({ divId }) => {
     const el = document.getElementById(divId);
-    if (el) el.classList.remove('page--active');
+    if (el) el.style.display = 'none';
   });
 
   const activePage = document.getElementById(PAGES[pageKey].divId);
-  if (activePage) activePage.classList.add('page--active');
+  if (activePage) activePage.style.display = '';
 
   // Update nav active state
   document.querySelectorAll('.nav-link').forEach(link => {
     link.classList.toggle('active', link.dataset.page === pageKey);
   });
 
-  // Render the page
-  PAGES[pageKey].render();
+  // Render the page with container and store
+  PAGES[pageKey].render(activePage, dataStore);
 
   // Update sidebar savings
   updateSidebarSavings();
-}
-
-// ============================================================
-// TOAST
-// ============================================================
-
-let toastTimer = null;
-
-export function showToast(message) {
-  const toast = document.getElementById('toast');
-  if (!toast) return;
-
-  toast.textContent = message;
-  toast.classList.add('toast--visible');
-
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.classList.remove('toast--visible');
-  }, 3000);
-}
-
-// ============================================================
-// SIDEBAR SAVINGS
-// ============================================================
-
-export function updateSidebarSavings() {
-  const state = dataStore.getSavingsState();
-
-  const jackEl = document.getElementById('sidebar-jack-savings');
-  const courtneyEl = document.getElementById('sidebar-courtney-savings');
-
-  if (jackEl) jackEl.textContent = formatCurrency(state.jack ?? 0);
-  if (courtneyEl) courtneyEl.textContent = formatCurrency(state.courtney ?? 0);
-}
-
-// ============================================================
-// FORMATTING UTILITIES
-// ============================================================
-
-export function formatCurrency(n) {
-  const num = Number(n) || 0;
-  const abs = Math.abs(Math.round(num));
-  const formatted = abs.toLocaleString('en-US');
-  return num < 0 ? `-$${formatted}` : `$${formatted}`;
-}
-
-export function formatCurrencyFull(n) {
-  const num = Number(n) || 0;
-  const abs = Math.abs(num).toFixed(2);
-  const [integer, decimal] = abs.split('.');
-  const formattedInteger = Number(integer).toLocaleString('en-US');
-  return num < 0 ? `-$${formattedInteger}.${decimal}` : `$${formattedInteger}.${decimal}`;
 }
 
 // ============================================================

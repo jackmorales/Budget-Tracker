@@ -2,7 +2,7 @@ import { dataStore } from './datastore.js';
 import { parseANZCSV } from './csv-parser.js';
 import { readMasterWorkbook } from './excel-io.js';
 import { applyAllRules } from './rules-engine.js';
-import { updateSidebarSavings } from './app.js';
+import { updateSidebarSavings } from './utils.js';
 
 export function renderUpload(container, store) {
   container.innerHTML = `

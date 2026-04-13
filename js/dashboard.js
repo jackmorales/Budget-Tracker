@@ -1,5 +1,5 @@
 import { dataStore } from './datastore.js';
-import { formatCurrency, formatCurrencyFull } from './app.js';
+import { formatCurrency, formatCurrencyFull } from './utils.js';
 
 // Module-level chart instance to allow destroy before re-create
 let chartInstance = null;

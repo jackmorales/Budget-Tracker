@@ -1,6 +1,6 @@
 import { dataStore } from './datastore.js';
 import { writeMasterWorkbook } from './excel-io.js';
-import { showToast } from './app.js';
+import { showToast } from './utils.js';
 
 export function renderExport(container, store) {
   const ds = store || dataStore;

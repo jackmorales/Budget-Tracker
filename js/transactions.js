@@ -2,7 +2,7 @@
 // Transactions page: full table with inline editing, filters, and Add Rule modal.
 
 import { dataStore } from './datastore.js';
-import { formatCurrencyFull, updateSidebarSavings } from './app.js';
+import { formatCurrencyFull, updateSidebarSavings } from './utils.js';
 
 // ============================================================
 // MODULE STATE
