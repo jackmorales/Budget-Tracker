@@ -1,8 +1,9 @@
 import { dataStore } from './datastore.js';
 import { formatCurrency, formatCurrencyFull } from './utils.js';
 
-// Module-level chart instance to allow destroy before re-create
+// Module-level chart instances to allow destroy before re-create
 let chartInstance = null;
+let barChartInstance = null;
 
 // Module-level selected month state
 let selectedMonth = null;
@@ -107,6 +108,17 @@ function calcStats(transactions, allTransactions) {
     rentalIncome,
     rentalExpense,
   };
+}
+
+function calcMonthlyBreakdown(allTransactions) {
+  const months = getUniqueMonths(allTransactions).reverse(); // oldest first
+  return months.map(month => {
+    const txns = filterByMonth(allTransactions, month);
+    const income = txns.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+    const expenses = txns.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+    const net = income - expenses;
+    return { month, label: getMonthLabel(month), income, expenses, net };
+  });
 }
 
 // ============================================================
@@ -253,6 +265,10 @@ export function renderDashboard(container, store) {
     </div>
     ${heroHTML}
     ${statsHTML}
+    <div class="card monthly-chart-card">
+      <div class="card-title">Monthly Savings & Spending</div>
+      <canvas id="dashboard-bar-canvas" height="220"></canvas>
+    </div>
     ${bottomHTML}
   `;
 
@@ -265,8 +281,10 @@ export function renderDashboard(container, store) {
     });
   }
 
-  // Render chart
+  // Render charts
   renderDonut(stats.categoryTotals, COLORS);
+  const monthlyData = calcMonthlyBreakdown(allTransactions);
+  renderBarChart(monthlyData);
 }
 
 // ============================================================
@@ -304,6 +322,102 @@ function renderDonut(categoryTotals, colors) {
       plugins: { legend: { display: false } },
       responsive: true,
       maintainAspectRatio: true,
+    },
+  });
+}
+
+// ============================================================
+// STACKED BAR CHART
+// ============================================================
+
+function renderBarChart(monthlyData) {
+  const canvas = document.getElementById('dashboard-bar-canvas');
+  if (!canvas) return;
+
+  if (barChartInstance) {
+    barChartInstance.destroy();
+    barChartInstance = null;
+  }
+
+  if (monthlyData.length === 0) return;
+
+  const ctx = canvas.getContext('2d');
+  const labels = monthlyData.map(d => d.label);
+  const incomeData = monthlyData.map(d => d.income);
+  const expenseData = monthlyData.map(d => d.expenses);
+  const netData = monthlyData.map(d => d.net);
+
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Income',
+          data: incomeData,
+          backgroundColor: '#10b981',
+          borderRadius: 4,
+        },
+        {
+          label: 'Expenses',
+          data: expenseData,
+          backgroundColor: '#ef4444',
+          borderRadius: 4,
+        },
+        {
+          label: 'Net Savings',
+          data: netData,
+          type: 'line',
+          borderColor: '#7c3aed',
+          backgroundColor: 'rgba(124,58,237,0.1)',
+          borderWidth: 2,
+          pointBackgroundColor: '#7c3aed',
+          pointRadius: 4,
+          fill: true,
+          tension: 0.3,
+          yAxisID: 'y',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 16,
+            font: { size: 12 },
+          },
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const val = context.parsed.y;
+              const sign = context.dataset.label === 'Expenses' ? '-' : '';
+              return ` ${context.dataset.label}: ${sign}$${Math.abs(val).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (val) => '$' + val.toLocaleString('en-AU', { maximumFractionDigits: 0 }),
+          },
+          grid: { color: '#f3f4f6' },
+        },
+      },
     },
   });
 }
