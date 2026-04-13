@@ -94,12 +94,12 @@ export function renderUpload(container, store) {
     try {
       const text = await file.text();
       const transactions = parseANZCSV(text);
-      const customRules = dataStore.getCustomRules ? dataStore.getCustomRules() : [];
-      const categorised = applyAllRules(transactions, customRules);
-      const { added, duplicates } = dataStore.addTransactions(categorised);
+      const customRules = dataStore.getCustomRules();
+      applyAllRules(transactions, customRules);
+      const { added, skipped } = dataStore.addTransactions(transactions);
       updateSidebarSavings();
       showResult(
-        `${added} new transaction${added !== 1 ? 's' : ''} added, ${duplicates} duplicate${duplicates !== 1 ? 's' : ''} skipped.`,
+        `${added} new transaction${added !== 1 ? 's' : ''} added, ${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped.`,
         false
       );
       setTimeout(() => {
