@@ -2,7 +2,7 @@
 // Transactions page: full table with inline editing, filters, and Add Rule modal.
 
 import { dataStore } from './datastore.js';
-import { formatCurrencyFull, updateSidebarSavings } from './utils.js';
+import { formatCurrency, formatCurrencyFull, updateSidebarSavings } from './utils.js';
 
 // ============================================================
 // MODULE STATE
@@ -147,7 +147,7 @@ function buildRow(tx, globalIndex, categories, runningBalance) {
   const allocDisabled = tx.split ? ' disabled' : '';
   const allocValue = tx.split ? 'Shared' : tx.allocation;
 
-  const balFormatted = formatCurrencyFull(runningBalance);
+  const balFormatted = formatCurrency(runningBalance);
 
   return `
     <tr${trClass} data-global-index="${globalIndex}">

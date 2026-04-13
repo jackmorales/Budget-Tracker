@@ -942,6 +942,26 @@ input, select, textarea {
   appearance: none;
 }
 
+.allocation-select.pill--jack,
+.allocation-select.pill--courtney,
+.allocation-select.pill--shared,
+.allocation-select.pill--income,
+.allocation-select.pill--other {
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.allocation-select.pill--jack     { background: #e0e7ff; color: #4338ca; }
+.allocation-select.pill--courtney { background: #fce7f3; color: #be185d; }
+.allocation-select.pill--shared   { background: #f5f3ff; color: #7c3aed; }
+.allocation-select.pill--income   { background: #d1fae5; color: #065f46; }
+.allocation-select.pill--other    { background: #f3f4f6; color: #6b7280; }
+
 .allocation-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
