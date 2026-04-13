@@ -290,11 +290,7 @@ class DataStore {
 
   /** Save config (savings, categories, rules) to Firestore */
   async saveConfig() {
-    if (!this._uid) {
-      console.warn('saveConfig skipped — no uid set');
-      return;
-    }
-    console.log('saveConfig called, uid:', this._uid, 'categories:', this._categories.length);
+    if (!this._uid) return;
     const ref = doc(db, 'users', this._uid, 'settings', 'config');
     await setDoc(ref, {
       savingsConfig: this._savingsConfig,
