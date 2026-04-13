@@ -400,7 +400,7 @@ function wireEvents(pageEl, rerenderFn) {
           if (name && name.trim()) {
             newCat = name.trim();
             ds.addCategory(newCat);
-            ds.saveConfig().catch(console.error);
+            ds.saveConfig().then(() => console.log('Config saved with new category:', newCat)).catch(err => console.error('Failed to save config:', err));
           } else {
             const tx = ds.getTransactions()[index];
             el.value = tx.category || 'Uncategorised';
@@ -408,7 +408,7 @@ function wireEvents(pageEl, rerenderFn) {
           }
         }
         const updatedTx = ds.updateTransaction(index, { category: newCat });
-        if (updatedTx) ds.saveTransaction(updatedTx).catch(console.error);
+        if (updatedTx) ds.saveTransaction(updatedTx).then(() => console.log('Transaction saved')).catch(err => console.error('Failed to save transaction:', err));
         // Update tag color inline
         const style = getCategoryStyle(newCat);
         el.setAttribute('style', style);
