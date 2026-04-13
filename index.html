@@ -118,9 +118,11 @@
   <div id="toast" class="toast" aria-live="polite"></div>
 
   <script>
-    // Register service worker to ensure fresh assets
+    // Unregister any existing service worker that may interfere with requests
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
     }
   </script>
   <script type="module">
