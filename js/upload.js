@@ -96,11 +96,12 @@ export function renderUpload(container, store) {
 
       const { added, skipped, newlyAdded } = dataStore.addTransactions(transactions);
 
-      // Persist new transactions to Firestore
+      // Persist new transactions and config (categories, rules) to Firestore
       if (newlyAdded && newlyAdded.length > 0) {
         showResult(`Saving ${added} transactions to cloud...`, false);
         await dataStore.saveTransactions(newlyAdded);
       }
+      await dataStore.saveConfig();
 
       updateSidebarSavings();
       showResult(
