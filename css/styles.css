@@ -883,6 +883,11 @@ input, select, textarea {
   white-space: nowrap;
 }
 
+/* Date preset row */
+.date-presets {
+  margin-bottom: 20px;
+}
+
 /* Date preset buttons */
 .date-preset-btn {
   padding: 5px 12px;
