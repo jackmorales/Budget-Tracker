@@ -5,8 +5,9 @@ import { formatCurrency, formatCurrencyFull } from './utils.js';
 let chartInstance = null;
 let barChartInstance = null;
 
-// Module-level selected month state
-let selectedMonth = null;
+// Module-level date filter state
+let dateFrom = '';
+let dateTo = '';
 let initialised = false;
 
 // ============================================================
@@ -34,9 +35,41 @@ function getUniqueMonths(transactions) {
   return Array.from(set).sort().reverse(); // newest first
 }
 
-function filterByMonth(transactions, month) {
-  if (!month || month === 'all') return transactions;
-  return transactions.filter(tx => getMonthKey(tx.date) === month);
+function filterByDateRange(transactions, from, to) {
+  return transactions.filter(tx => {
+    if (from && tx.date < from) return false;
+    if (to && tx.date > to) return false;
+    return true;
+  });
+}
+
+function getDatePresets(transactions) {
+  const months = getUniqueMonths(transactions);
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+
+  const presets = [
+    { label: 'All Time', from: '', to: '' },
+    { label: 'YTD', from: '2026-01-01', to: '' },
+    { label: 'This Month', from: `${yyyy}-${mm}-01`, to: '' },
+  ];
+
+  for (const m of months) {
+    const [y, mo] = m.split('-');
+    const lastDay = new Date(Number(y), Number(mo), 0).getDate();
+    presets.push({
+      label: getMonthLabel(m),
+      from: `${m}-01`,
+      to: `${m}-${String(lastDay).padStart(2, '0')}`,
+    });
+  }
+
+  return presets;
+}
+
+function isActivePreset(preset) {
+  return dateFrom === preset.from && dateTo === preset.to;
 }
 
 // ============================================================
@@ -127,7 +160,11 @@ function calcMonthlyBreakdown(allTransactions) {
   }
 
   return months.map(month => {
-    const txns = filterByMonth(allTransactions, month);
+    const [y, mo] = month.split('-');
+    const lastDay = new Date(Number(y), Number(mo), 0).getDate();
+    const from = `${month}-01`;
+    const to = `${month}-${String(lastDay).padStart(2, '0')}`;
+    const txns = filterByDateRange(allTransactions, from, to);
     const income = txns.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
     const expenses = txns.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
     const net = income - expenses;
@@ -146,30 +183,44 @@ export function renderDashboard(container, store) {
   if (!pageEl) return;
 
   const allTransactions = ds.getTransactions();
-  const months = getUniqueMonths(allTransactions);
+  const presets = getDatePresets(allTransactions);
 
-  // Initialise selectedMonth on first render or when it becomes stale
-  if (!initialised || (months.length > 0 && selectedMonth !== 'all' && !months.includes(selectedMonth))) {
-    selectedMonth = months.length > 0 ? months[0] : 'all';
+  // Initialise to current month on first render
+  if (!initialised && allTransactions.length > 0) {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    dateFrom = `${yyyy}-${mm}-01`;
+    dateTo = '';
     initialised = true;
-  } else if (months.length === 0) {
-    selectedMonth = 'all';
   }
 
-  const filtered = filterByMonth(allTransactions, selectedMonth);
+  const filtered = filterByDateRange(allTransactions, dateFrom, dateTo);
   const stats = calcStats(filtered, allTransactions);
   const savings = ds.getSavingsState();
 
-  // Current month label for subtitle
-  const currentMonthLabel = selectedMonth === 'all' ? 'All Time' : getMonthLabel(selectedMonth);
+  // Current filter label for subtitle
+  const activePreset = presets.find(p => isActivePreset(p));
+  const currentLabel = activePreset ? activePreset.label : (dateFrom || dateTo ? `${dateFrom || '...'} to ${dateTo || '...'}` : 'All Time');
 
   // ---- Build HTML ----
 
-  // Month dropdown options
-  const monthOptions = [
-    `<option value="all"${selectedMonth === 'all' ? ' selected' : ''}>All Time</option>`,
-    ...months.map(m => `<option value="${m}"${selectedMonth === m ? ' selected' : ''}>${getMonthLabel(m)}</option>`),
-  ].join('');
+  // Date preset buttons
+  const presetButtons = presets.map((p, i) =>
+    `<button class="date-preset-btn${isActivePreset(p) ? ' date-preset-btn--active' : ''}" data-preset="${i}">${p.label}</button>`
+  ).join('');
+
+  const inputStyle = 'padding:5px 8px;border-radius:8px;border:1px solid #e5e7eb;font-size:0.82rem;background:#f9fafb;cursor:pointer;color:#374151;';
+
+  const dateFilterHTML = `
+    <div class="date-presets" id="dashboard-date-presets" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      ${presetButtons}
+      <span style="color:#9ca3af;font-size:0.8rem;margin:0 4px;">|</span>
+      <input type="date" id="dash-filter-date-from" value="${dateFrom}" style="${inputStyle}" title="From date" />
+      <span style="color:#9ca3af;font-size:0.82rem;">to</span>
+      <input type="date" id="dash-filter-date-to" value="${dateTo}" style="${inputStyle}" title="To date" />
+    </div>
+  `;
 
   // Hero card
   const heroHTML = `
@@ -268,15 +319,13 @@ export function renderDashboard(container, store) {
     <div class="page-header">
       <div class="page-header-left">
         <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle">${currentMonthLabel}</p>
+        <p class="page-subtitle">${currentLabel}</p>
       </div>
       <div class="page-header-right">
-        <select class="month-filter" id="dashboard-month-filter">
-          ${monthOptions}
-        </select>
         <a href="#upload" class="btn btn-primary">Upload CSV</a>
       </div>
     </div>
+    ${dateFilterHTML}
     ${heroHTML}
     ${statsHTML}
     <div class="card monthly-chart-card">
@@ -286,11 +335,33 @@ export function renderDashboard(container, store) {
     ${bottomHTML}
   `;
 
-  // Month filter change handler
-  const filterEl = pageEl.querySelector('#dashboard-month-filter');
-  if (filterEl) {
-    filterEl.addEventListener('change', (e) => {
-      selectedMonth = e.target.value;
+  // Date preset buttons
+  const presetsEl = pageEl.querySelector('#dashboard-date-presets');
+  if (presetsEl) {
+    presetsEl.addEventListener('click', e => {
+      const btn = e.target.closest('.date-preset-btn');
+      if (!btn) return;
+      const idx = Number(btn.dataset.preset);
+      const preset = presets[idx];
+      if (!preset) return;
+      dateFrom = preset.from;
+      dateTo = preset.to;
+      renderDashboard(container, store);
+    });
+  }
+
+  // Custom date range inputs
+  const dashDateFrom = pageEl.querySelector('#dash-filter-date-from');
+  const dashDateTo = pageEl.querySelector('#dash-filter-date-to');
+  if (dashDateFrom) {
+    dashDateFrom.addEventListener('change', e => {
+      dateFrom = e.target.value;
+      renderDashboard(container, store);
+    });
+  }
+  if (dashDateTo) {
+    dashDateTo.addEventListener('change', e => {
+      dateTo = e.target.value;
       renderDashboard(container, store);
     });
   }
