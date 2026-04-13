@@ -61,6 +61,9 @@ function filterTransactions(transactions) {
       const alloc = tx.allocation || '';
       if (currentFilters.allocation === 'Unallocated') {
         if (alloc) return false;
+      } else if (currentFilters.allocation === 'Income') {
+        // Show all income transactions (positive amounts) regardless of allocation
+        if (tx.amount <= 0 && alloc !== 'Income') return false;
       } else {
         if (alloc !== currentFilters.allocation) return false;
       }
