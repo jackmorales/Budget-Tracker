@@ -83,7 +83,14 @@ function setupLogout() {
 
 window.addEventListener('hashchange', navigate);
 
-document.addEventListener('DOMContentLoaded', () => {
+// Modules are deferred — DOMContentLoaded may have already fired.
+function init() {
   setupLogout();
   renderLogin(onAuthenticated);
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
