@@ -74,8 +74,7 @@ function calcStats(transactions, allTransactions) {
     .slice(0, 3)
     .map(([cat]) => cat);
 
-  // Account balance (ALL transactions, unfiltered)
-  const accountBalance = allTransactions.reduce((s, t) => s + t.amount, 0);
+  // Account balance (ALL transactions, unfiltered) — not used for display anymore
 
   // Category totals for donut (filtered month, negative amounts only)
   const catMap = {};
@@ -104,7 +103,6 @@ function calcStats(transactions, allTransactions) {
     courtneyIncome,
     sharedExpenses,
     top3SharedCats,
-    accountBalance,
     categoryTotals,
     rentalIncome,
     rentalExpense,
@@ -183,9 +181,9 @@ export function renderDashboard(container, store) {
         <div class="stat-detail red">${sharedCatDetail}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Account Balance</div>
-        <div class="stat-value">${formatCurrency(stats.accountBalance)}</div>
-        <div class="stat-detail muted">ANZ Offset</div>
+        <div class="stat-label">Offset Balance</div>
+        <div class="stat-value">${formatCurrency(savings.offsetBalance)}</div>
+        <div class="stat-detail muted">ANZ Offset Account</div>
       </div>
     </div>
   `;

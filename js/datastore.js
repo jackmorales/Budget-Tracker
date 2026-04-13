@@ -17,6 +17,7 @@ const DEFAULT_SAVINGS_CONFIG = {
   startDate: '2026-01-01',
   jackOpening: 38076.78,
   courtneyOpening: 38325.92,
+  offsetOpening: 77196,
 };
 
 class DataStore {
@@ -107,7 +108,7 @@ class DataStore {
   }
 
   getSavingsState() {
-    const { jackOpening, courtneyOpening, startDate } = this._savingsConfig;
+    const { jackOpening, courtneyOpening, startDate, offsetOpening } = this._savingsConfig;
 
     let jack = jackOpening;
     let courtney = courtneyOpening;
@@ -153,10 +154,20 @@ class DataStore {
       }
     }
 
+    // Offset balance = opening + all transactions from startDate
+    const txTotal = sorted
+      .filter(tx => tx.date >= startDate)
+      .reduce((s, tx) => s + tx.amount, 0);
+    const offsetBalance = (offsetOpening || 0) + txTotal;
+
+    // Combined savings = difference between current and starting balance
+    const combined = offsetBalance - (offsetOpening || 0);
+
     return {
       jack: Math.round(jack * 100) / 100,
       courtney: Math.round(courtney * 100) / 100,
-      combined: Math.round((jack + courtney) * 100) / 100,
+      combined: Math.round(combined * 100) / 100,
+      offsetBalance: Math.round(offsetBalance * 100) / 100,
     };
   }
 
