@@ -9,7 +9,8 @@ import { formatCurrency, formatCurrencyFull, updateSidebarSavings } from './util
 // ============================================================
 
 let currentFilters = {
-  month: 'all',
+  dateFrom: '',
+  dateTo: '',
   category: 'all',
   allocation: 'all',
 };
@@ -53,7 +54,8 @@ function formatDateShort(dateStr) {
 
 function filterTransactions(transactions) {
   return transactions.filter(tx => {
-    if (currentFilters.month !== 'all' && getMonthKey(tx.date) !== currentFilters.month) return false;
+    if (currentFilters.dateFrom && tx.date < currentFilters.dateFrom) return false;
+    if (currentFilters.dateTo && tx.date > currentFilters.dateTo) return false;
     if (currentFilters.category !== 'all' && (tx.category || 'Uncategorised') !== currentFilters.category) return false;
     if (currentFilters.allocation !== 'all') {
       const alloc = tx.allocation || '';
@@ -250,16 +252,42 @@ function buildTable(filtered, allTransactions, categories) {
 // FILTERS ROW
 // ============================================================
 
-function buildFiltersRow(allTransactions, categories) {
+function getDatePresets(allTransactions) {
   const months = getUniqueMonths(allTransactions);
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
 
-  const monthOptions = [
-    `<option value="all"${currentFilters.month === 'all' ? ' selected' : ''}>All Months</option>`,
-    ...months.map(m => {
-      const sel = currentFilters.month === m ? ' selected' : '';
-      return `<option value="${m}"${sel}>${getMonthLabel(m)}</option>`;
-    }),
-  ].join('');
+  const presets = [
+    { label: 'All Time', from: '', to: '' },
+    { label: 'YTD', from: '2026-01-01', to: '' },
+    { label: 'This Month', from: `${yyyy}-${mm}-01`, to: '' },
+  ];
+
+  // Add individual months from data
+  for (const m of months) {
+    const [y, mo] = m.split('-');
+    const lastDay = new Date(Number(y), Number(mo), 0).getDate();
+    presets.push({
+      label: getMonthLabel(m),
+      from: `${m}-01`,
+      to: `${m}-${String(lastDay).padStart(2, '0')}`,
+    });
+  }
+
+  return presets;
+}
+
+function isActivePreset(preset) {
+  return currentFilters.dateFrom === preset.from && currentFilters.dateTo === preset.to;
+}
+
+function buildFiltersRow(allTransactions, categories) {
+  const presets = getDatePresets(allTransactions);
+
+  const presetButtons = presets.map((p, i) =>
+    `<button class="date-preset-btn${isActivePreset(p) ? ' date-preset-btn--active' : ''}" data-preset="${i}">${p.label}</button>`
+  ).join('');
 
   const categoryOptions = [
     `<option value="all"${currentFilters.category === 'all' ? ' selected' : ''}>All Categories</option>`,
@@ -282,17 +310,26 @@ function buildFiltersRow(allTransactions, categories) {
     return `<option value="${o.value}"${sel}>${o.label}</option>`;
   }).join('');
 
+  const selectStyle = 'padding:6px 10px;border-radius:8px;border:1px solid #e5e7eb;font-size:0.875rem;background:#f9fafb;cursor:pointer;';
+  const inputStyle = 'padding:5px 8px;border-radius:8px;border:1px solid #e5e7eb;font-size:0.82rem;background:#f9fafb;cursor:pointer;color:#374151;';
+
   return `
-    <div class="filters-row" id="tx-filters-row" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-      <select class="month-filter" id="tx-filter-month" style="padding:6px 10px;border-radius:8px;border:1px solid #e5e7eb;font-size:0.875rem;background:#f9fafb;cursor:pointer;">
-        ${monthOptions}
-      </select>
-      <select class="month-filter" id="tx-filter-category" style="padding:6px 10px;border-radius:8px;border:1px solid #e5e7eb;font-size:0.875rem;background:#f9fafb;cursor:pointer;">
-        ${categoryOptions}
-      </select>
-      <select class="month-filter" id="tx-filter-allocation" style="padding:6px 10px;border-radius:8px;border:1px solid #e5e7eb;font-size:0.875rem;background:#f9fafb;cursor:pointer;">
-        ${allocationOptions}
-      </select>
+    <div class="filters-row" id="tx-filters-row" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div class="date-presets" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        ${presetButtons}
+        <span style="color:#9ca3af;font-size:0.8rem;margin:0 4px;">|</span>
+        <input type="date" id="tx-filter-date-from" value="${currentFilters.dateFrom}" style="${inputStyle}" title="From date" />
+        <span style="color:#9ca3af;font-size:0.82rem;">to</span>
+        <input type="date" id="tx-filter-date-to" value="${currentFilters.dateTo}" style="${inputStyle}" title="To date" />
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <select class="month-filter" id="tx-filter-category" style="${selectStyle}">
+          ${categoryOptions}
+        </select>
+        <select class="month-filter" id="tx-filter-allocation" style="${selectStyle}">
+          ${allocationOptions}
+        </select>
+      </div>
     </div>
   `;
 }
@@ -499,17 +536,42 @@ function wireEvents(pageEl, rerenderFn) {
     });
   }
 
-  // Filter changes
-  const filterMonth = pageEl.querySelector('#tx-filter-month');
-  const filterCat   = pageEl.querySelector('#tx-filter-category');
-  const filterAlloc = pageEl.querySelector('#tx-filter-allocation');
+  // Filter changes — date presets
+  const presetsContainer = pageEl.querySelector('.date-presets');
+  if (presetsContainer) {
+    const allTransactions = ds.getTransactions();
+    const presets = getDatePresets(allTransactions);
 
-  if (filterMonth) {
-    filterMonth.addEventListener('change', e => {
-      currentFilters.month = e.target.value;
+    presetsContainer.addEventListener('click', e => {
+      const btn = e.target.closest('.date-preset-btn');
+      if (!btn) return;
+      const idx = Number(btn.dataset.preset);
+      const preset = presets[idx];
+      if (!preset) return;
+      currentFilters.dateFrom = preset.from;
+      currentFilters.dateTo = preset.to;
       rerenderFn();
     });
   }
+
+  // Custom date range inputs
+  const dateFromInput = pageEl.querySelector('#tx-filter-date-from');
+  const dateToInput = pageEl.querySelector('#tx-filter-date-to');
+  if (dateFromInput) {
+    dateFromInput.addEventListener('change', e => {
+      currentFilters.dateFrom = e.target.value;
+      rerenderFn();
+    });
+  }
+  if (dateToInput) {
+    dateToInput.addEventListener('change', e => {
+      currentFilters.dateTo = e.target.value;
+      rerenderFn();
+    });
+  }
+
+  const filterCat   = pageEl.querySelector('#tx-filter-category');
+  const filterAlloc = pageEl.querySelector('#tx-filter-allocation');
   if (filterCat) {
     filterCat.addEventListener('change', e => {
       currentFilters.category = e.target.value;

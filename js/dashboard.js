@@ -85,9 +85,16 @@ function calcStats(transactions, allTransactions) {
       const cat = t.category || 'Uncategorised';
       catMap[cat] = (catMap[cat] || 0) + Math.abs(t.amount);
     });
-  const categoryTotals = Object.entries(catMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 6);
+  // Show top categories individually, group the rest as "Other"
+  const sorted = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+  let categoryTotals;
+  if (sorted.length <= 8) {
+    categoryTotals = sorted;
+  } else {
+    const top = sorted.slice(0, 7);
+    const otherTotal = sorted.slice(7).reduce((s, [, v]) => s + v, 0);
+    categoryTotals = [...top, ['Other', otherTotal]];
+  }
 
   // Rental income vs expense
   const rentalIncome = transactions
