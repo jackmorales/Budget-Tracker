@@ -220,18 +220,19 @@ export function renderDashboard(container, store) {
       <div class="card">
         <div class="card-title">Rental Income vs Expense</div>
         <div class="rental-comparison">
-          <div class="rental-row">
-            <span class="rental-label">Rental Income</span>
-            <span class="rental-value positive">${formatCurrency(stats.rentalIncome)}</span>
+          <div class="rental-cards">
+            <div class="rental-mini-card rental-mini-card--income">
+              <div class="rental-mini-label">Rental Income</div>
+              <div class="rental-mini-value">${formatCurrency(stats.rentalIncome)}</div>
+            </div>
+            <div class="rental-mini-card rental-mini-card--expense">
+              <div class="rental-mini-label">Parkside Rent</div>
+              <div class="rental-mini-value">-${formatCurrency(stats.rentalExpense)}</div>
+            </div>
           </div>
-          <div class="rental-row">
-            <span class="rental-label">Parkside Rent</span>
-            <span class="rental-value negative">-${formatCurrency(stats.rentalExpense)}</span>
-          </div>
-          <div class="rental-divider"></div>
-          <div class="rental-row rental-net">
-            <span class="rental-label">Net</span>
-            <span class="rental-value ${rentalNetClass}">${rentalNetSign}${formatCurrency(Math.abs(rentalNet))}</span>
+          <div class="rental-net-row">
+            <span class="rental-net-label">Net</span>
+            <span class="rental-net-value ${rentalNetClass}">${rentalNetSign}${formatCurrency(Math.abs(rentalNet))}</span>
           </div>
         </div>
       </div>

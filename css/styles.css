@@ -521,46 +521,78 @@ input, select, textarea {
 .rental-comparison {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 8px 0;
+  gap: 16px;
 }
 
-.rental-row {
+.rental-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.rental-mini-card {
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.rental-mini-card--income {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.rental-mini-card--expense {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.rental-mini-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.rental-mini-card--income .rental-mini-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #059669;
+}
+
+.rental-mini-card--expense .rental-mini-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #dc2626;
+}
+
+.rental-net-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-radius: 10px;
 }
 
-.rental-label {
-  font-size: 0.9rem;
-  color: #4b5563;
-}
-
-.rental-value {
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.rental-value.positive {
-  color: #10b981;
-}
-
-.rental-value.negative {
-  color: #ef4444;
-}
-
-.rental-divider {
-  border-top: 2px solid #e5e7eb;
-}
-
-.rental-net .rental-label {
+.rental-net-label {
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1e1b4b;
-  font-size: 1rem;
 }
 
-.rental-net .rental-value {
+.rental-net-value {
   font-size: 1.3rem;
+  font-weight: 800;
+}
+
+.rental-net-value.positive {
+  color: #059669;
+}
+
+.rental-net-value.negative {
+  color: #dc2626;
 }
 
 .recent-tx-item {
