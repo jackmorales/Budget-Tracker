@@ -117,6 +117,12 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast" aria-live="polite"></div>
 
+  <script>
+    // Register service worker to ensure fresh assets
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
   <script type="module">
     const v = Date.now();
     const { navigate } = await import(`./js/app.js?v=${v}`);
