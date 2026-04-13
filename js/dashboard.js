@@ -400,8 +400,14 @@ function renderBarChart(monthlyData) {
           callbacks: {
             label: function(context) {
               const val = context.parsed.y;
-              const sign = context.dataset.label === 'Expenses' ? '-' : '';
-              return ` ${context.dataset.label}: ${sign}$${Math.abs(val).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+              let formatted;
+              if (context.dataset.label === 'Expenses') {
+                formatted = `-$${val.toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+              } else {
+                const prefix = val < 0 ? '-$' : '$';
+                formatted = `${prefix}${Math.abs(val).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+              }
+              return ` ${context.dataset.label}: ${formatted}`;
             },
           },
         },
