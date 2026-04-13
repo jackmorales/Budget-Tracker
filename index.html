@@ -124,10 +124,26 @@
         regs.forEach(r => r.unregister());
       });
     }
+
+    // Build import map with cache-busting for ALL JS modules
+    const v = Date.now();
+    const modules = [
+      'app', 'dashboard', 'transactions', 'upload', 'export',
+      'datastore', 'auth', 'utils', 'firebase', 'csv-parser',
+      'excel-io', 'rules-engine'
+    ];
+    const imports = {};
+    for (const m of modules) {
+      imports[`./js/${m}.js`] = `./js/${m}.js?v=${v}`;
+      imports[`./${m}.js`] = `./js/${m}.js?v=${v}`;
+    }
+    const map = document.createElement('script');
+    map.type = 'importmap';
+    map.textContent = JSON.stringify({ imports });
+    document.currentScript.after(map);
   </script>
   <script type="module">
-    const v = Date.now();
-    const { navigate } = await import(`./js/app.js?v=${v}`);
+    import { navigate } from './js/app.js';
   </script>
 </body>
 </html>
