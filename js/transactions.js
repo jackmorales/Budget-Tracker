@@ -150,7 +150,10 @@ function buildRow(tx, globalIndex, categories, runningBalance) {
   const balFormatted = formatCurrencyFull(runningBalance);
 
   return `
-    <tr${trClass}>
+    <tr${trClass} data-global-index="${globalIndex}">
+      <td class="col-select">
+        <input type="checkbox" class="row-select-checkbox" data-index="${globalIndex}" />
+      </td>
       <td class="col-date">${escapeHtml(dateStr)}</td>
       <td class="col-desc">
         <span class="tx-desc-text" title="${escapeHtml(desc)}">${escapeHtml(desc)}</span>
@@ -224,6 +227,7 @@ function buildTable(filtered, allTransactions, categories) {
       <table class="tx-table">
         <thead>
           <tr>
+            <th class="col-select"><input type="checkbox" id="select-all-checkbox" /></th>
             <th class="col-date">Date</th>
             <th class="col-desc">Bank Description</th>
             <th class="col-amount">Amount</th>
@@ -354,11 +358,146 @@ function buildAddRuleModal(categories) {
 }
 
 // ============================================================
+// BULK ACTION BAR
+// ============================================================
+
+function buildBulkActionBar(categories) {
+  const catOptions = categories.map(cat =>
+    `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`
+  ).join('');
+
+  const allocOptions = [
+    { value: 'Jack', label: 'Jack' },
+    { value: 'Courtney', label: 'Courtney' },
+    { value: 'Shared', label: 'Shared' },
+    { value: 'Income', label: 'Income' },
+  ].map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+
+  return `
+    <div class="bulk-bar bulk-bar--hidden" id="bulk-action-bar">
+      <span class="bulk-bar__count" id="bulk-count">0 selected</span>
+      <select class="bulk-bar__select" id="bulk-category">
+        <option value="">Set Category...</option>
+        ${catOptions}
+      </select>
+      <select class="bulk-bar__select" id="bulk-allocation">
+        <option value="">Set Allocation...</option>
+        ${allocOptions}
+      </select>
+      <label class="bulk-bar__split-label">
+        <input type="checkbox" id="bulk-split" class="split-checkbox" />
+        Split
+      </label>
+      <button class="btn btn-primary bulk-bar__apply" id="bulk-apply-btn">Apply</button>
+      <button class="bulk-bar__clear" id="bulk-clear-btn">Clear</button>
+    </div>
+  `;
+}
+
+// ============================================================
 // EVENT WIRING
 // ============================================================
 
 function wireEvents(pageEl, rerenderFn) {
   const ds = dataStore;
+
+  // --- Bulk selection ---
+  const bulkBar = pageEl.querySelector('#bulk-action-bar');
+  const bulkCount = pageEl.querySelector('#bulk-count');
+  const selectAllCb = pageEl.querySelector('#select-all-checkbox');
+
+  function getSelectedIndices() {
+    const checkboxes = pageEl.querySelectorAll('.row-select-checkbox:checked');
+    return Array.from(checkboxes).map(cb => Number(cb.dataset.index));
+  }
+
+  function updateBulkBar() {
+    const count = getSelectedIndices().length;
+    if (count > 0) {
+      bulkBar.classList.remove('bulk-bar--hidden');
+      bulkCount.textContent = `${count} selected`;
+    } else {
+      bulkBar.classList.add('bulk-bar--hidden');
+    }
+  }
+
+  if (selectAllCb) {
+    selectAllCb.addEventListener('change', () => {
+      const checkboxes = pageEl.querySelectorAll('.row-select-checkbox');
+      checkboxes.forEach(cb => { cb.checked = selectAllCb.checked; });
+      updateBulkBar();
+    });
+  }
+
+  // Row checkbox changes (event delegation)
+  const tbody = pageEl.querySelector('#tx-tbody');
+  if (tbody) {
+    tbody.addEventListener('change', e => {
+      if (e.target.classList.contains('row-select-checkbox')) {
+        updateBulkBar();
+        // Update select-all state
+        if (selectAllCb) {
+          const all = pageEl.querySelectorAll('.row-select-checkbox');
+          const checked = pageEl.querySelectorAll('.row-select-checkbox:checked');
+          selectAllCb.checked = all.length > 0 && all.length === checked.length;
+        }
+      }
+    });
+  }
+
+  // Bulk apply
+  const bulkApplyBtn = pageEl.querySelector('#bulk-apply-btn');
+  if (bulkApplyBtn) {
+    bulkApplyBtn.addEventListener('click', async () => {
+      const indices = getSelectedIndices();
+      if (indices.length === 0) return;
+
+      const catSelect = pageEl.querySelector('#bulk-category');
+      const allocSelect = pageEl.querySelector('#bulk-allocation');
+      const splitCb = pageEl.querySelector('#bulk-split');
+
+      const newCat = catSelect.value;
+      const newAlloc = allocSelect.value;
+      const newSplit = splitCb.checked;
+
+      const updatedTxns = [];
+      for (const idx of indices) {
+        const updates = {};
+        if (newCat) updates.category = newCat;
+        if (newAlloc) {
+          updates.allocation = newAlloc;
+          if (newAlloc === 'Shared') updates.split = true;
+        }
+        if (newSplit) {
+          updates.split = true;
+          updates.allocation = 'Shared';
+        }
+        if (Object.keys(updates).length > 0) {
+          const updated = ds.updateTransaction(idx, updates);
+          if (updated) updatedTxns.push(updated);
+        }
+      }
+
+      // Persist all updated transactions
+      if (updatedTxns.length > 0) {
+        ds.saveTransactions(updatedTxns).catch(console.error);
+      }
+
+      updateSidebarSavings();
+      rerenderFn();
+    });
+  }
+
+  // Bulk clear
+  const bulkClearBtn = pageEl.querySelector('#bulk-clear-btn');
+  if (bulkClearBtn) {
+    bulkClearBtn.addEventListener('click', () => {
+      const checkboxes = pageEl.querySelectorAll('.row-select-checkbox');
+      checkboxes.forEach(cb => { cb.checked = false; });
+      if (selectAllCb) selectAllCb.checked = false;
+      updateBulkBar();
+    });
+  }
 
   // Filter changes
   const filterMonth = pageEl.querySelector('#tx-filter-month');
@@ -559,6 +698,8 @@ export function renderTransactions(container, store) {
   const tableHTML     = buildTable(filtered, allTransactions, categories);
   const modalHTML     = buildAddRuleModal(categories);
 
+  const bulkBarHTML = buildBulkActionBar(categories);
+
   pageEl.innerHTML = `
     <div class="page-header">
       <div class="page-header-left">
@@ -569,6 +710,7 @@ export function renderTransactions(container, store) {
         <button class="btn btn-primary" id="tx-add-rule-btn">+ Add Rule</button>
       </div>
     </div>
+    ${bulkBarHTML}
     ${filtersHTML}
     ${tableHTML}
     ${modalHTML}
