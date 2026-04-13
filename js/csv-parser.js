@@ -60,7 +60,7 @@ function parseCSVLine(line) {
  * Parse ANZ CSV text into an array of transaction objects.
  * @param {string} csvText
  * @returns {Array<{
- *   date: Date,
+ *   date: string,
  *   amount: number,
  *   bankDesc: string,
  *   payeeFull: string,
@@ -89,7 +89,8 @@ function parseANZCSV(csvText) {
     const day   = parseInt(dateParts[0], 10);
     const month = parseInt(dateParts[1], 10);
     const year  = parseInt(dateParts[2], 10);
-    const date  = new Date(year, month - 1, day);
+    // Format as YYYY-MM-DD string (app-wide convention)
+    const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
     // Col 1: Amount — strip any surrounding quotes then parse
     const amountRaw = (cols[1] || '').replace(/"/g, '').trim();

@@ -25,11 +25,11 @@ export function navigate() {
   // Hide all pages, show active
   Object.values(PAGES).forEach(({ divId }) => {
     const el = document.getElementById(divId);
-    if (el) el.style.display = 'none';
+    if (el) el.classList.remove('page--active');
   });
 
   const activePage = document.getElementById(PAGES[pageKey].divId);
-  if (activePage) activePage.style.display = '';
+  if (activePage) activePage.classList.add('page--active');
 
   // Update nav active state
   document.querySelectorAll('.nav-link').forEach(link => {
