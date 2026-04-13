@@ -50,7 +50,7 @@ export function renderLogin(onAuthenticated) {
           <rect x="2" y="5" width="20" height="14" rx="2"/>
           <path d="M2 10h20"/>
         </svg>
-        <span>C&amp;J Budget</span>
+        <span>Morales Budget</span>
       </div>
       <h2 class="login-title">Welcome back</h2>
       <p class="login-subtitle">Sign in to access your dashboard</p>
