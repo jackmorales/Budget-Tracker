@@ -515,6 +515,54 @@ input, select, textarea {
   padding: 24px 0;
 }
 
+/* ============================================================
+   RENTAL COMPARISON
+   ============================================================ */
+.rental-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0;
+}
+
+.rental-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rental-label {
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.rental-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.rental-value.positive {
+  color: #10b981;
+}
+
+.rental-value.negative {
+  color: #ef4444;
+}
+
+.rental-divider {
+  border-top: 2px solid #e5e7eb;
+}
+
+.rental-net .rental-label {
+  font-weight: 700;
+  color: #1e1b4b;
+  font-size: 1rem;
+}
+
+.rental-net .rental-value {
+  font-size: 1.3rem;
+}
+
 .recent-tx-item {
   display: flex;
   align-items: center;

@@ -89,10 +89,14 @@ function calcStats(transactions, allTransactions) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6);
 
-  // Recent transactions (filtered, newest first, top 6)
-  const recent = [...transactions]
-    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-    .slice(0, 6);
+  // Rental income vs expense
+  const rentalIncome = transactions
+    .filter(t => t.category === 'Rental Income' && t.amount > 0)
+    .reduce((s, t) => s + t.amount, 0);
+
+  const rentalExpense = transactions
+    .filter(t => t.category === 'Parkside Rent' && t.amount < 0)
+    .reduce((s, t) => s + Math.abs(t.amount), 0);
 
   return {
     income,
@@ -102,7 +106,8 @@ function calcStats(transactions, allTransactions) {
     top3SharedCats,
     accountBalance,
     categoryTotals,
-    recent,
+    rentalIncome,
+    rentalExpense,
   };
 }
 
@@ -195,22 +200,10 @@ export function renderDashboard(container, store) {
     </div>
   `).join('');
 
-  // Recent transactions
-  let recentHTML;
-  if (allTransactions.length === 0) {
-    recentHTML = `<div class="recent-empty">No transactions yet — upload a CSV to get started</div>`;
-  } else {
-    recentHTML = stats.recent.map(tx => {
-      const desc = tx.notes || tx.category || truncate(tx.bankDesc, 30);
-      const amtClass = tx.amount >= 0 ? 'positive' : 'negative';
-      return `
-        <div class="recent-item">
-          <span class="recent-desc">${desc}</span>
-          <span class="recent-amount ${amtClass}">${formatCurrency(tx.amount)}</span>
-        </div>
-      `;
-    }).join('');
-  }
+  // Rental comparison
+  const rentalNet = stats.rentalIncome - stats.rentalExpense;
+  const rentalNetClass = rentalNet >= 0 ? 'positive' : 'negative';
+  const rentalNetSign = rentalNet >= 0 ? '+' : '';
 
   // Bottom row
   const bottomHTML = `
@@ -225,8 +218,22 @@ export function renderDashboard(container, store) {
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Recent Transactions</div>
-        <div class="recent-list">${recentHTML}</div>
+        <div class="card-title">Rental Income vs Expense</div>
+        <div class="rental-comparison">
+          <div class="rental-row">
+            <span class="rental-label">Rental Income</span>
+            <span class="rental-value positive">${formatCurrency(stats.rentalIncome)}</span>
+          </div>
+          <div class="rental-row">
+            <span class="rental-label">Parkside Rent</span>
+            <span class="rental-value negative">-${formatCurrency(stats.rentalExpense)}</span>
+          </div>
+          <div class="rental-divider"></div>
+          <div class="rental-row rental-net">
+            <span class="rental-label">Net</span>
+            <span class="rental-value ${rentalNetClass}">${rentalNetSign}${formatCurrency(Math.abs(rentalNet))}</span>
+          </div>
+        </div>
       </div>
     </div>
   `;
