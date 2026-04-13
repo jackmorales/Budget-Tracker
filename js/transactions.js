@@ -371,13 +371,19 @@ function wireEvents(pageEl, rerenderFn) {
   // Table body — event delegation
   const tbody = pageEl.querySelector('#tx-tbody');
   if (tbody) {
-    // input event for notes
+    // input event for notes — debounced save
+    let notesTimer = null;
     tbody.addEventListener('input', e => {
       const el = e.target;
       if (el.dataset.field !== 'notes') return;
       const index = Number(el.dataset.index);
-      ds.updateTransaction(index, { notes: el.value });
+      const updated = ds.updateTransaction(index, { notes: el.value });
       updateSidebarSavings();
+      // Debounce Firestore save
+      clearTimeout(notesTimer);
+      notesTimer = setTimeout(() => {
+        if (updated) ds.saveTransaction(updated).catch(console.error);
+      }, 800);
     });
 
     // change event for selects + checkboxes
@@ -400,7 +406,8 @@ function wireEvents(pageEl, rerenderFn) {
             return;
           }
         }
-        ds.updateTransaction(index, { category: newCat });
+        const updatedTx = ds.updateTransaction(index, { category: newCat });
+        if (updatedTx) ds.saveTransaction(updatedTx).catch(console.error);
         // Update tag color inline
         const style = getCategoryStyle(newCat);
         el.setAttribute('style', style);
@@ -420,7 +427,8 @@ function wireEvents(pageEl, rerenderFn) {
           updates.split = false;
         }
 
-        ds.updateTransaction(index, updates);
+        const updatedAlloc = ds.updateTransaction(index, updates);
+        if (updatedAlloc) ds.saveTransaction(updatedAlloc).catch(console.error);
         updateSidebarSavings();
         rerenderFn();
         return;
@@ -431,7 +439,8 @@ function wireEvents(pageEl, rerenderFn) {
         if (el.checked) {
           updates.allocation = 'Shared';
         }
-        ds.updateTransaction(index, updates);
+        const updatedSplit = ds.updateTransaction(index, updates);
+        if (updatedSplit) ds.saveTransaction(updatedSplit).catch(console.error);
         updateSidebarSavings();
         rerenderFn();
         return;
@@ -502,6 +511,11 @@ function wireEvents(pageEl, rerenderFn) {
       } catch (err) {
         console.warn('Could not apply rules:', err);
       }
+
+      // Save config (rules) and updated transactions to Firestore
+      ds.saveConfig().catch(console.error);
+      const allTx = ds.getTransactions();
+      ds.saveTransactions(allTx).catch(console.error);
 
       updateSidebarSavings();
       modal.classList.remove('modal-overlay--visible');

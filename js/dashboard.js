@@ -333,6 +333,7 @@ export function renderDashboard(container, store) {
       inputEl.addEventListener('change', (e) => {
         const val = parseFloat(e.target.value) || 0;
         ds.setSavingsConfig({ [key]: val });
+        ds.saveConfig().catch(console.error);
         renderDashboard(container, store);
       });
     }

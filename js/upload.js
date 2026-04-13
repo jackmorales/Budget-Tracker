@@ -20,7 +20,7 @@ export function renderUpload(container, store) {
       <label class="upload-zone" id="zone-csv" for="input-csv">
         <div class="upload-icon">📄</div>
         <div class="upload-title">ANZ CSV</div>
-        <div class="upload-desc">Upload a new bank statement CSV to import transactions</div>
+        <div class="upload-desc">Upload a new bank statement CSV to append transactions</div>
         <input type="file" id="input-csv" accept=".csv">
       </label>
     </div>
@@ -88,11 +88,20 @@ export function renderUpload(container, store) {
 
   async function handleCSV(file) {
     try {
+      showResult('Importing...', false);
       const text = await file.text();
       const transactions = parseANZCSV(text);
       const customRules = dataStore.getCustomRules();
       applyAllRules(transactions, customRules);
-      const { added, skipped } = dataStore.addTransactions(transactions);
+
+      const { added, skipped, newlyAdded } = dataStore.addTransactions(transactions);
+
+      // Persist new transactions to Firestore
+      if (newlyAdded && newlyAdded.length > 0) {
+        showResult(`Saving ${added} transactions to cloud...`, false);
+        await dataStore.saveTransactions(newlyAdded);
+      }
+
       updateSidebarSavings();
       showResult(
         `${added} new transaction${added !== 1 ? 's' : ''} added, ${skipped} duplicate${skipped !== 1 ? 's' : ''} skipped.`,

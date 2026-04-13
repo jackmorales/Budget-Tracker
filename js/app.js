@@ -3,6 +3,7 @@ import { renderTransactions } from './transactions.js';
 import { renderUpload } from './upload.js';
 import { renderExport } from './export.js';
 import { dataStore } from './datastore.js';
+import { renderLogin, logout } from './auth.js';
 import { showToast, updateSidebarSavings, formatCurrency, formatCurrencyFull } from './utils.js';
 
 export { showToast, updateSidebarSavings, formatCurrency, formatCurrencyFull } from './utils.js';
@@ -44,8 +45,45 @@ export function navigate() {
 }
 
 // ============================================================
+// AUTH + INIT
+// ============================================================
+
+async function onAuthenticated(user) {
+  showToast('Loading your data...');
+
+  try {
+    const result = await dataStore.loadFromFirestore(user.uid);
+    if (result.transactions > 0) {
+      showToast(`Loaded ${result.transactions} transactions`);
+    } else {
+      showToast('Welcome! Upload a CSV to get started.');
+    }
+  } catch (err) {
+    console.error('Error loading data:', err);
+    showToast('Error loading data — check console');
+  }
+
+  navigate();
+}
+
+// Logout handler
+function setupLogout() {
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      dataStore.clear();
+      await logout();
+    });
+  }
+}
+
+// ============================================================
 // EVENT LISTENERS
 // ============================================================
 
 window.addEventListener('hashchange', navigate);
-document.addEventListener('DOMContentLoaded', navigate);
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupLogout();
+  renderLogin(onAuthenticated);
+});
