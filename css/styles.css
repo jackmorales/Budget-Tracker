@@ -746,6 +746,8 @@ input, select, textarea {
    ============================================================ */
 .tx-table-wrapper {
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 220px);
   border-radius: 16px;
   box-shadow: 0 2px 10px rgba(30,27,75,0.07);
 }
@@ -753,7 +755,8 @@ input, select, textarea {
 .tx-table {
   width: 100%;
   background: #fff;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 0.85rem;
 }
 
@@ -770,6 +773,11 @@ input, select, textarea {
   letter-spacing: 0.07em;
   color: #9ca3af;
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .tx-table td {

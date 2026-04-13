@@ -293,7 +293,7 @@ export function renderDashboard(container, store) {
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Rental Income vs Expense</div>
+        <div class="card-title">Rental Cashflows</div>
         <div class="rental-comparison">
           <div class="rental-cards">
             <div class="rental-mini-card rental-mini-card--income">
