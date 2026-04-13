@@ -186,7 +186,7 @@ function calculateMonthlySnapshots() {
     for (const tx of monthTxns) {
       const { amount, category, allocation, split } = tx;
 
-      if (category === 'Savings') {
+      if (category === 'Income' || category === 'Savings') {
         if (allocation === 'Jack') {
           jackIncome += amount;
         } else if (allocation === 'Courtney') {

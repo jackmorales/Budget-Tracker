@@ -7,9 +7,13 @@ const DEFAULT_CATEGORIES = [
   'Loan Payment',
   'Utilities',
   'Bank Fees',
+  'Income',
   'Savings',
   'Shopping',
+  'Food',
   'Fuel',
+  'Health',
+  'Gifts',
   'Uncategorised',
 ];
 
@@ -129,7 +133,7 @@ class DataStore {
       const allocation = tx.allocation;
       const split = tx.split;
 
-      if (category === 'Savings') {
+      if (category === 'Income' || category === 'Savings') {
         if (allocation === 'Jack') {
           jack += amount;
         } else if (allocation === 'Courtney') {
