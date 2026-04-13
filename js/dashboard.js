@@ -111,7 +111,14 @@ function calcStats(transactions, allTransactions) {
 }
 
 function calcMonthlyBreakdown(allTransactions) {
-  const months = getUniqueMonths(allTransactions).reverse(); // oldest first
+  // Build last 6 months (rolling window), filling gaps with zeros
+  const now = new Date();
+  const months = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+
   return months.map(month => {
     const txns = filterByMonth(allTransactions, month);
     const income = txns.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
