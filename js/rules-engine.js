@@ -3,7 +3,6 @@
 
 const BUILT_IN_RULES = [
   { matchField: 'reference',   matchText: 'TEN01732',              category: 'Parkside Rent',  allocation: 'Shared',   split: true  },
-  { matchField: 'description', matchText: 'RAY WHITE',             category: 'Parkside Rent',  allocation: 'Shared',   split: true  },
   { matchField: 'description', matchText: 'RAIN REAL ESTATE',      category: 'Rental Income',  allocation: 'Income',   split: false },
   { matchField: 'description', matchText: 'HBF',                   category: 'Insurance',      allocation: 'Shared',   split: true  },
   { matchField: 'description', matchText: 'NIB',                   category: 'Insurance',      allocation: 'Shared',   split: true  },
@@ -73,10 +72,8 @@ function applyRules(transaction, customRules = []) {
     tx.allocation = 'Courtney';
   }
 
-  // Priority 3: CSV user note as category hint
-  if (!tx.category && tx.notes && tx.notes.trim() !== '') {
-    tx.category = tx.notes.trim();
-  }
+  // Priority 3: CSV user note as category hint — only if it matches a known category
+  // (Notes like "Woolies", "Court refund" stay as notes, not categories)
 
   // Default: Uncategorised
   if (!tx.category) {
