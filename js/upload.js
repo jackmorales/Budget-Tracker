@@ -39,7 +39,10 @@ export function renderUpload(container, store) {
   }
 
   // --- Master Workbook zone ---
-  zoneMaster.addEventListener('click', () => inputMaster.click());
+  zoneMaster.addEventListener('click', (e) => {
+    if (e.target === inputMaster) return; // prevent loop
+    inputMaster.click();
+  });
 
   inputMaster.addEventListener('change', async () => {
     const file = inputMaster.files[0];
@@ -79,7 +82,10 @@ export function renderUpload(container, store) {
   });
 
   // --- ANZ CSV zone ---
-  zoneCSV.addEventListener('click', () => inputCSV.click());
+  zoneCSV.addEventListener('click', (e) => {
+    if (e.target === inputCSV) return; // prevent loop
+    inputCSV.click();
+  });
 
   inputCSV.addEventListener('change', async () => {
     const file = inputCSV.files[0];
