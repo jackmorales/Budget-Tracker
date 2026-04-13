@@ -130,7 +130,7 @@ function buildAllocationOptions(selectedAllocation) {
   }).join('');
 }
 
-function buildRow(tx, globalIndex, categories) {
+function buildRow(tx, globalIndex, categories, runningBalance) {
   const needsAttention = !tx.category || tx.category === 'Uncategorised' || !tx.allocation;
   const trClass = needsAttention ? ' class="needs-attention"' : '';
 
@@ -147,6 +147,8 @@ function buildRow(tx, globalIndex, categories) {
   const allocDisabled = tx.split ? ' disabled' : '';
   const allocValue = tx.split ? 'Shared' : tx.allocation;
 
+  const balFormatted = formatCurrencyFull(runningBalance);
+
   return `
     <tr${trClass}>
       <td class="col-date">${escapeHtml(dateStr)}</td>
@@ -154,6 +156,7 @@ function buildRow(tx, globalIndex, categories) {
         <span class="tx-desc-text" title="${escapeHtml(desc)}">${escapeHtml(desc)}</span>
       </td>
       <td class="col-amount ${amtClass}">${escapeHtml(amtFormatted)}</td>
+      <td class="col-balance">${escapeHtml(balFormatted)}</td>
       <td class="col-notes">
         <input
           type="text"
@@ -199,9 +202,21 @@ function buildTable(filtered, allTransactions, categories) {
   // We need global indices — map filtered back to global
   const globalIndexMap = new Map(allTransactions.map((tx, i) => [tx, i]));
 
+  // Compute running balance for ALL transactions (chronological order)
+  // allTransactions is sorted date descending, so reverse for chronological
+  const opening = dataStore.getSavingsConfig().offsetOpening || 0;
+  const chronological = [...allTransactions].reverse();
+  const balanceMap = new Map();
+  let bal = opening;
+  for (const tx of chronological) {
+    bal += tx.amount;
+    balanceMap.set(tx, Math.round(bal * 100) / 100);
+  }
+
   const rows = filtered.map(tx => {
     const globalIndex = globalIndexMap.get(tx);
-    return buildRow(tx, globalIndex, categories);
+    const runningBalance = balanceMap.get(tx) || 0;
+    return buildRow(tx, globalIndex, categories, runningBalance);
   }).join('');
 
   return `
@@ -212,6 +227,7 @@ function buildTable(filtered, allTransactions, categories) {
             <th class="col-date">Date</th>
             <th class="col-desc">Bank Description</th>
             <th class="col-amount">Amount</th>
+            <th class="col-balance">Balance</th>
             <th class="col-notes">Notes</th>
             <th class="col-category">Category</th>
             <th class="col-allocation">Allocated To</th>
