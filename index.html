@@ -96,6 +96,10 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast" aria-live="polite"></div>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module">
+    // Loader with cache-busting for all modules
+    const v = Date.now();
+    const { navigate } = await import(`./js/app.js?v=${v}`);
+  </script>
 </body>
 </html>

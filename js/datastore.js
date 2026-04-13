@@ -125,8 +125,6 @@ class DataStore {
     });
 
     for (const tx of sorted) {
-      // Only process transactions on or after startDate
-      if (tx.date < startDate) continue;
 
       const amount = tx.amount;
       const category = tx.category;
@@ -158,10 +156,8 @@ class DataStore {
       }
     }
 
-    // Offset balance = opening + all transactions from startDate
-    const txTotal = sorted
-      .filter(tx => tx.date >= startDate)
-      .reduce((s, tx) => s + tx.amount, 0);
+    // Offset balance = opening + ALL transactions in file (no date filter)
+    const txTotal = sorted.reduce((s, tx) => s + tx.amount, 0);
     const offsetBalance = (offsetOpening || 0) + txTotal;
 
     // Combined savings = difference between current and starting balance

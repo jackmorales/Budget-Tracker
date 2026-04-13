@@ -77,6 +77,32 @@ function getAllocationPillClass(allocation) {
   }
 }
 
+const CATEGORY_COLORS = {
+  'Parkside Rent':  { bg: '#fef3c7', text: '#92400e' },
+  'Rental Income':  { bg: '#d1fae5', text: '#065f46' },
+  'Insurance':      { bg: '#dbeafe', text: '#1e40af' },
+  'Childcare':      { bg: '#fce7f3', text: '#9d174d' },
+  'Mia Swimming':   { bg: '#e0e7ff', text: '#3730a3' },
+  'Loan Payment':   { bg: '#fee2e2', text: '#991b1b' },
+  'Utilities':      { bg: '#cffafe', text: '#155e75' },
+  'Bank Fees':      { bg: '#f3f4f6', text: '#374151' },
+  'Income':         { bg: '#d1fae5', text: '#065f46' },
+  'Savings':        { bg: '#d1fae5', text: '#065f46' },
+  'Shopping':       { bg: '#ede9fe', text: '#5b21b6' },
+  'Food':           { bg: '#fef9c3', text: '#854d0e' },
+  'Fuel':           { bg: '#ffedd5', text: '#9a3412' },
+  'Health':         { bg: '#fce7f3', text: '#831843' },
+  'Gifts':          { bg: '#fbcfe8', text: '#9d174d' },
+  'Uncategorised':  { bg: '#fef3c7', text: '#b45309', border: '#fbbf24' },
+};
+
+function getCategoryStyle(category) {
+  const c = CATEGORY_COLORS[category] || { bg: '#f3f4f6', text: '#374151' };
+  let style = `background:${c.bg};color:${c.text};`;
+  if (c.border) style += `border:1px solid ${c.border};`;
+  return style;
+}
+
 // ============================================================
 // ROW RENDERING
 // ============================================================
@@ -115,11 +141,11 @@ function buildRow(tx, globalIndex, categories) {
   const amtPrefix = tx.amount >= 0 ? '+' : '';
   const amtFormatted = amtPrefix + formatCurrencyFull(tx.amount);
 
-  const catBorderStyle = (!tx.category || tx.category === 'Uncategorised')
-    ? ' style="border-color: #fbbf24;"'
-    : '';
+  const catStyle = getCategoryStyle(tx.category || 'Uncategorised');
 
   const splitChecked = tx.split ? ' checked' : '';
+  const allocDisabled = tx.split ? ' disabled' : '';
+  const allocValue = tx.split ? 'Shared' : tx.allocation;
 
   return `
     <tr${trClass}>
@@ -139,13 +165,13 @@ function buildRow(tx, globalIndex, categories) {
         />
       </td>
       <td class="col-category">
-        <select class="category-select" data-index="${globalIndex}" data-field="category"${catBorderStyle}>
+        <select class="category-select category-tag" data-index="${globalIndex}" data-field="category" style="${catStyle}">
           ${buildCategoryOptions(categories, tx.category || 'Uncategorised')}
         </select>
       </td>
       <td class="col-allocation">
-        <select class="allocation-select ${getAllocationPillClass(tx.allocation)}" data-index="${globalIndex}" data-field="allocation">
-          ${buildAllocationOptions(tx.allocation)}
+        <select class="allocation-select ${getAllocationPillClass(allocValue)}" data-index="${globalIndex}" data-field="allocation"${allocDisabled}>
+          ${buildAllocationOptions(allocValue)}
         </select>
       </td>
       <td class="col-split">
@@ -369,13 +395,15 @@ function wireEvents(pageEl, rerenderFn) {
             newCat = name.trim();
             ds.addCategory(newCat);
           } else {
-            // Revert select
             const tx = ds.getTransactions()[index];
             el.value = tx.category || 'Uncategorised';
             return;
           }
         }
         ds.updateTransaction(index, { category: newCat });
+        // Update tag color inline
+        const style = getCategoryStyle(newCat);
+        el.setAttribute('style', style);
         updateSidebarSavings();
         rerenderFn();
         return;
@@ -399,8 +427,14 @@ function wireEvents(pageEl, rerenderFn) {
       }
 
       if (field === 'split') {
-        ds.updateTransaction(index, { split: el.checked });
+        const updates = { split: el.checked };
+        if (el.checked) {
+          updates.allocation = 'Shared';
+        }
+        ds.updateTransaction(index, updates);
         updateSidebarSavings();
+        rerenderFn();
+        return;
       }
     });
   }

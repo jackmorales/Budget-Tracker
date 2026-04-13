@@ -274,6 +274,85 @@ input, select, textarea {
 }
 
 /* ============================================================
+   OPENING BALANCE BAR
+   ============================================================ */
+.opening-balance-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(30,27,75,0.06);
+  align-items: flex-end;
+}
+
+.opening-balance-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.opening-balance-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+}
+
+.opening-balance-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0 10px;
+  transition: border-color 0.15s;
+}
+
+.opening-balance-input-wrap:focus-within {
+  border-color: #a78bfa;
+  background: #fff;
+}
+
+.opening-balance-prefix {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-right: 4px;
+}
+
+.opening-balance-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  padding: 8px 0;
+  width: 130px;
+  -moz-appearance: textfield;
+}
+
+.opening-balance-input::-webkit-inner-spin-button,
+.opening-balance-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .opening-balance-bar {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .opening-balance-input {
+    width: 100%;
+  }
+}
+
+/* ============================================================
    HERO CARD
    ============================================================ */
 .hero-card {
@@ -777,7 +856,22 @@ input, select, textarea {
   background: #f9fafb;
   cursor: pointer;
   transition: border-color 0.15s;
-  max-width: 120px;
+  max-width: 140px;
+}
+
+.category-tag {
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.allocation-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .category-select:focus,

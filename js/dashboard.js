@@ -164,6 +164,37 @@ export function renderDashboard(container, store) {
     ...months.map(m => `<option value="${m}"${selectedMonth === m ? ' selected' : ''}>${getMonthLabel(m)}</option>`),
   ].join('');
 
+  // Opening balance config
+  const savingsConfig = ds.getSavingsConfig();
+  const openingBalanceHTML = `
+    <div class="opening-balance-bar">
+      <div class="opening-balance-group">
+        <label class="opening-balance-label" for="input-offset-opening">Opening Balance</label>
+        <div class="opening-balance-input-wrap">
+          <span class="opening-balance-prefix">$</span>
+          <input type="number" id="input-offset-opening" class="opening-balance-input"
+            value="${savingsConfig.offsetOpening}" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="opening-balance-group">
+        <label class="opening-balance-label" for="input-jack-opening">Jack Opening</label>
+        <div class="opening-balance-input-wrap">
+          <span class="opening-balance-prefix">$</span>
+          <input type="number" id="input-jack-opening" class="opening-balance-input"
+            value="${savingsConfig.jackOpening}" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div class="opening-balance-group">
+        <label class="opening-balance-label" for="input-courtney-opening">Courtney Opening</label>
+        <div class="opening-balance-input-wrap">
+          <span class="opening-balance-prefix">$</span>
+          <input type="number" id="input-courtney-opening" class="opening-balance-input"
+            value="${savingsConfig.courtneyOpening}" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+    </div>
+  `;
+
   // Hero card
   const heroHTML = `
     <div class="hero-card">
@@ -270,6 +301,7 @@ export function renderDashboard(container, store) {
         <a href="#upload" class="btn btn-primary">Upload CSV</a>
       </div>
     </div>
+    ${openingBalanceHTML}
     ${heroHTML}
     ${statsHTML}
     <div class="card monthly-chart-card">
@@ -286,6 +318,24 @@ export function renderDashboard(container, store) {
       selectedMonth = e.target.value;
       renderDashboard(container, store);
     });
+  }
+
+  // Opening balance input handlers
+  const openingInputs = [
+    { id: 'input-offset-opening', key: 'offsetOpening' },
+    { id: 'input-jack-opening', key: 'jackOpening' },
+    { id: 'input-courtney-opening', key: 'courtneyOpening' },
+  ];
+
+  for (const { id, key } of openingInputs) {
+    const inputEl = pageEl.querySelector(`#${id}`);
+    if (inputEl) {
+      inputEl.addEventListener('change', (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        ds.setSavingsConfig({ [key]: val });
+        renderDashboard(container, store);
+      });
+    }
   }
 
   // Render charts
