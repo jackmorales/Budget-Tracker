@@ -523,8 +523,7 @@ function wireEvents(pageEl, rerenderFn) {
     });
   }
 
-  // Table body — event delegation
-  const tbody = pageEl.querySelector('#tx-tbody');
+  // Table body — event delegation (reuse tbody from above)
   if (tbody) {
     // input event for notes — debounced save
     let notesTimer = null;
