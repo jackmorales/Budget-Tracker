@@ -9,6 +9,7 @@ let barChartInstance = null;
 let dateFrom = '';
 let dateTo = '';
 let initialised = false;
+const AVERAGE_EXPENSE_EXCLUDED_CATEGORIES = new Set(['Parkside Rent', 'Loan Payment']);
 
 // ============================================================
 // HELPERS
@@ -90,23 +91,15 @@ function calcStats(transactions, allTransactions) {
     .filter(t => t.amount > 0 && t.allocation === 'Courtney')
     .reduce((s, t) => s + t.amount, 0);
 
-  // Shared expenses (filtered month)
-  const sharedExpenses = transactions
-    .filter(t => t.amount < 0 && t.split)
-    .reduce((s, t) => s + Math.abs(t.amount), 0);
+  const averageExpenseMonthCount = getUniqueMonths(transactions).length;
 
-  // Top 3 shared expense categories
-  const sharedCatMap = {};
-  transactions
-    .filter(t => t.amount < 0 && t.split)
-    .forEach(t => {
-      const cat = t.category || 'Uncategorised';
-      sharedCatMap[cat] = (sharedCatMap[cat] || 0) + Math.abs(t.amount);
-    });
-  const top3SharedCats = Object.entries(sharedCatMap)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([cat]) => cat);
+  // Average monthly outgoing expenses in scope, excluding rent and loan payments
+  const averageExpenses = transactions
+    .filter(t => t.amount < 0 && !AVERAGE_EXPENSE_EXCLUDED_CATEGORIES.has(t.category))
+    .reduce((s, t) => s + Math.abs(t.amount), 0);
+  const averageMonthlyExpenses = averageExpenseMonthCount > 0
+    ? averageExpenses / averageExpenseMonthCount
+    : 0;
 
   // Account balance (ALL transactions, unfiltered) — not used for display anymore
 
@@ -142,8 +135,8 @@ function calcStats(transactions, allTransactions) {
     income,
     jackIncome,
     courtneyIncome,
-    sharedExpenses,
-    top3SharedCats,
+    averageMonthlyExpenses,
+    averageExpenseMonthCount,
     categoryTotals,
     rentalIncome,
     rentalExpense,
@@ -223,9 +216,9 @@ export function renderDashboard(container, store) {
   `;
 
   // Stats row (4 cards)
-  const sharedCatDetail = stats.top3SharedCats.length > 0
-    ? stats.top3SharedCats.join(' · ')
-    : 'No shared expenses';
+  const averageExpenseDetail = stats.averageExpenseMonthCount > 0
+    ? `Across ${stats.averageExpenseMonthCount} month${stats.averageExpenseMonthCount === 1 ? '' : 's'} · Excl. Parkside Rent & Loan Payment`
+    : 'No expenses in range';
 
   const statsHTML = `
     <div class="stats-row">
@@ -240,9 +233,9 @@ export function renderDashboard(container, store) {
         <div class="stat-detail purple">J: ${formatCurrency(stats.jackIncome)} · C: ${formatCurrency(stats.courtneyIncome)}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Shared Expenses</div>
-        <div class="stat-value">${formatCurrency(stats.sharedExpenses)}</div>
-        <div class="stat-detail red">${sharedCatDetail}</div>
+        <div class="stat-label">Average Expenses</div>
+        <div class="stat-value">${formatCurrency(stats.averageMonthlyExpenses)}</div>
+        <div class="stat-detail red">${averageExpenseDetail}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Offset Balance</div>
