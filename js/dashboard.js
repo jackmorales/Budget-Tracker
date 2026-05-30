@@ -91,10 +91,10 @@ function calcStats(transactions, allTransactions) {
     .filter(t => t.amount > 0 && t.allocation === 'Courtney')
     .reduce((s, t) => s + t.amount, 0);
 
-  const averageExpenseMonthCount = getUniqueMonths(allTransactions).length;
+  const averageExpenseMonthCount = getUniqueMonths(transactions).length;
 
-  // Average monthly outgoing expenses across the full dataset, excluding rent and loan payments
-  const averageExpenses = allTransactions
+  // Average monthly outgoing expenses in scope, excluding rent and loan payments
+  const averageExpenses = transactions
     .filter(t => t.amount < 0 && !AVERAGE_EXPENSE_EXCLUDED_CATEGORIES.has(t.category))
     .reduce((s, t) => s + Math.abs(t.amount), 0);
   const averageMonthlyExpenses = averageExpenseMonthCount > 0
